@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node server/server.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "preserver": "npx kill-port 5000",
     "server": "nodemon server/server.js",
     "client": "npm run dev --prefix client",
@@ -39,6 +40,7 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "concurrently": "^10.0.4",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
