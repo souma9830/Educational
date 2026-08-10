@@ -40,6 +40,8 @@ describe('Security Headers', () => {
     expect(res.headers['content-security-policy']).toBeDefined();
     expect(res.headers['content-security-policy']).toContain("default-src 'self'");
     expect(res.headers['content-security-policy']).toContain('upgrade-insecure-requests');
+    expect(res.headers['content-security-policy']).not.toContain("script-src 'self' 'unsafe-inline'");
+    expect(res.headers['content-security-policy']).toContain("'nonce-");
   });
 
   it('should remove X-Powered-By header', async () => {

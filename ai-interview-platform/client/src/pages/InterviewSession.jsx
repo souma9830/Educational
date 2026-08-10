@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bot, Mic, MicOff, Send, RefreshCw, Volume2, Sparkles, ChevronRight, Video, Camera, Play, AlertTriangle } from 'lucide-react';
 import WebcamStream from '../components/Telemetry/WebcamStream';
 import ViolationAlertBanner from '../components/Telemetry/ViolationAlertBanner';
+import ProctoringAlertModal from '../components/Telemetry/ProctoringAlertModal';
 import { getAuthHeader } from '../utils/authHeaders';
 import { useProctor } from '../hooks/useProctor';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { stopMediaStream } from '../utils/mediaStreamCleaner';
 
 export default function InterviewSession({ globalState, setGlobalState, setCurrentTab }) {
   const selectedRole = globalState.role || 'Frontend Engineer';

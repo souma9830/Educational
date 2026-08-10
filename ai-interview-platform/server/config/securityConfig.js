@@ -5,7 +5,7 @@ const NONE = "'none'";
 
 const CSP_DIRECTIVES = {
   defaultSrc: [SELF],
-  scriptSrc: [SELF, "'unsafe-inline'", "'unsafe-eval'", 'https://apis.google.com', 'https://www.gstatic.com'],
+  scriptSrc: [SELF, "'unsafe-eval'", 'https://apis.google.com', 'https://www.gstatic.com'],
   styleSrc: [SELF, "'unsafe-inline'", 'https://fonts.googleapis.com'],
   imgSrc: [SELF, 'data:', 'blob:'],
   fontSrc: [SELF, 'https://fonts.gstatic.com', 'data:'],

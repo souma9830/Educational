@@ -47,9 +47,8 @@ const customQuestionSetSchema = new mongoose.Schema({
   },
 });
 
-customQuestionSetSchema.pre('save', function (next) {
-  this.updatedAt = new Date();
-  next();
-});
+customQuestionSetSchema.index({ userId: 1, isActive: 1, createdAt: -1 });
+customQuestionSetSchema.index({ role: 1, isActive: 1 });
 
 module.exports = mongoose.model('CustomQuestionSet', customQuestionSetSchema);
+

@@ -29,12 +29,30 @@ export function useOfflineSync() {
       setIsOnline(false);
     };
 
+    const handleSwMessage = (event) => {
+      if (event.data && event.data.type === 'QUEUE_OFFLINE_REQUEST') {
+        const { url, method, body, contentType, headers } = event.data;
+        const parsedBody = body && contentType?.includes('application/json') ? JSON.parse(body) : body;
+        offlineQueue.enqueue(url, parsedBody, {
+          method: method || 'POST',
+          headers: Object.fromEntries(headers || []),
+        });
+        setUnsyncedCount(offlineQueue.getQueue().length);
+      }
+    };
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+      }
     };
   }, [syncQueue]);
 

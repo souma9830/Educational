@@ -202,7 +202,7 @@ export default function Dashboard({ setCurrentTab, setGlobalState }) {
         </button>
       </div>
 
-      <CompareModal open={compareModalOpen} onClose={() => setCompareModalOpen(false)} schedules={schedules} />
+      <CompareModal open={compareModalOpen} onClose={() => setCompareModalOpen(false)} reports={reports} schedules={schedules} />
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
 

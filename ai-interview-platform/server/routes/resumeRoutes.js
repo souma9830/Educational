@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { protect } = require('../middleware/authMiddleware');
-const { uploadResume, getResume, analyzeJobDescription } = require('../controllers/resumeController');
+const { uploadResume, getResume, analyzeJobDescription, exportResumeAnalytics } = require('../controllers/resumeController');
 const { validate } = require('../middleware/validators/validateMiddleware');
 const { analyzeJDValidator } = require('../middleware/validators/resumeValidators');
 
@@ -36,6 +36,7 @@ router.post('/upload', protect, resumeUploadFields, uploadResume);
 router.get('/me', protect, getResume);
 router.post('/analyze-jd', protect, analyzeJDValidator, validate, analyzeJobDescription);
 router.post('/analyze-jd', protect, analyzeJobDescription);
+router.post('/export-analytics', protect, exportResumeAnalytics);
 router.get('/status', protect, async (req, res) => {
   try {
     const userId = req.user ? req.user._id || req.user.uid : null;

@@ -1,8 +1,5 @@
-/**
- * Offline Submission Queue Manager
- * Persists failed network evaluation payloads and auto-flushes when connectivity is restored.
- */
 const STORAGE_KEY = 'interview_offline_queue_v1';
+const MAX_ATTEMPTS = 5;
 
 class OfflineQueue {
   constructor() {
@@ -30,12 +27,12 @@ class OfflineQueue {
 
   enqueue(url, payload, options = {}) {
     const item = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
       url,
       payload,
       timestamp: new Date().toISOString(),
       attempts: 0,
-      options
+      options,
     };
     this.queue.push(item);
     this.saveQueue();
@@ -47,7 +44,7 @@ class OfflineQueue {
   }
 
   remove(id) {
-    this.queue = this.queue.filter(item => item.id !== id);
+    this.queue = this.queue.filter((item) => item.id !== id);
     this.saveQueue();
   }
 
@@ -65,22 +62,27 @@ class OfflineQueue {
 
     for (const item of this.queue) {
       try {
+        const bodyContent = typeof item.payload === 'string' ? item.payload : JSON.stringify(item.payload);
         const response = await customFetch(item.url, {
           method: item.options.method || 'POST',
           headers: { 'Content-Type': 'application/json', ...(item.options.headers || {}) },
-          body: JSON.stringify(item.payload)
+          body: bodyContent,
         });
 
         if (response.ok) {
           synced++;
         } else {
           item.attempts += 1;
-          remaining.push(item);
+          if (item.attempts < MAX_ATTEMPTS) {
+            remaining.push(item);
+          }
           failed++;
         }
       } catch (err) {
         item.attempts += 1;
-        remaining.push(item);
+        if (item.attempts < MAX_ATTEMPTS) {
+          remaining.push(item);
+        }
         failed++;
       }
     }
@@ -91,11 +93,29 @@ class OfflineQueue {
   }
 }
 
-const offlineQueueInstance = new OfflineQueue();
+const offlineQueue = new OfflineQueue();
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    OfflineQueue,
-    offlineQueue: offlineQueueInstance
-  };
+function queueOfflineRequest(url, payload, options = {}) {
+  return offlineQueue.enqueue(url, payload, options);
 }
+
+async function syncOfflineRequests(customFetch = fetch) {
+  return offlineQueue.flush(customFetch);
+}
+
+function getOfflineQueue() {
+  return offlineQueue.getQueue();
+}
+
+function clearOfflineQueue() {
+  offlineQueue.clear();
+}
+
+module.exports = {
+  OfflineQueue,
+  offlineQueue,
+  queueOfflineRequest,
+  syncOfflineRequests,
+  getOfflineQueue,
+  clearOfflineQueue
+};

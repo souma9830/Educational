@@ -32,3 +32,17 @@ JWT_SECRET=your_jwt_secret_key
 ```bash
 npm test
 ```
+
+## Docker Containerized Setup
+
+For seamless onboarding without configuring local Node.js or MongoDB:
+
+```bash
+# Spin up MongoDB, Express API server, and Vite client in containers:
+docker compose up --build
+```
+
+- **Frontend Client**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+- **MongoDB**: `localhost:27017`
+
