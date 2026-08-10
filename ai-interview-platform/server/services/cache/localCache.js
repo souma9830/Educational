@@ -14,13 +14,23 @@ if (ttlCleanup.unref) {
 }
 
 class LocalCache {
+  constructor() {
+    this.hits = 0;
+    this.misses = 0;
+  }
+
   get(key) {
     const item = cache.get(key);
-    if (!item) return null;
-    if (Date.now() > item.expiry) {
-      cache.delete(key);
+    if (!item) {
+      this.misses++;
       return null;
     }
+    if (Date.now() > item.expiry) {
+      cache.delete(key);
+      this.misses++;
+      return null;
+    }
+    this.hits++;
     return item.value;
   }
 
@@ -34,10 +44,22 @@ class LocalCache {
 
   clear() {
     cache.clear();
+    this.hits = 0;
+    this.misses = 0;
   }
 
   size() {
     return cache.size;
+  }
+
+  getStats() {
+    const total = this.hits + this.misses;
+    return {
+      hits: this.hits,
+      misses: this.misses,
+      hitRatio: total > 0 ? (this.hits / total).toFixed(2) : 0,
+      size: cache.size
+    };
   }
 }
 

@@ -1,27 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
-export function useProctor(active, onViolation) {
+export function useProctor(active = true, options = {}) {
+  const { maxViolations = 5, onViolation, onThresholdExceeded } = options;
   const [violations, setViolations] = useState(0);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [lastViolationType, setLastViolationType] = useState(null);
+
+  const triggerViolation = useCallback((type) => {
+    setLastViolationType(type);
+    setShowWarningModal(true);
+    setViolations((prev) => {
+      const nextCount = prev + 1;
+      if (onViolation) onViolation(type, nextCount);
+      if (nextCount >= maxViolations && onThresholdExceeded) {
+        onThresholdExceeded(nextCount);
+      }
+      return nextCount;
+    });
+  }, [maxViolations, onViolation, onThresholdExceeded]);
 
   useEffect(() => {
     if (!active) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        setViolations(prev => {
-          const next = prev + 1;
-          if (onViolation) onViolation(next);
-          return next;
-        });
+        triggerViolation('TAB_SWITCH');
       }
     };
 
     const handleBlur = () => {
-      setViolations(prev => {
-        const next = prev + 1;
-        if (onViolation) onViolation(next);
-        return next;
-      });
+      triggerViolation('WINDOW_BLUR');
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -31,7 +39,27 @@ export function useProctor(active, onViolation) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [active, onViolation]);
+  }, [active, triggerViolation]);
 
-  return violations;
+  const dismissWarning = useCallback(() => {
+    setShowWarningModal(false);
+  }, []);
+
+  const resetViolations = useCallback(() => {
+    setViolations(0);
+    setShowWarningModal(false);
+  }, []);
+
+  const integrityScore = Math.max(0, 100 - violations * 15);
+
+  return {
+    violations,
+    integrityScore,
+    showWarningModal,
+    lastViolationType,
+    dismissWarning,
+    resetViolations,
+  };
 }
+
+export default useProctor;

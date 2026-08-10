@@ -21,4 +21,9 @@ const RefreshTokenSchema = new mongoose.Schema({
   }
 });
 
+RefreshTokenSchema.statics.revokeAllUserTokens = function (userId) {
+  return this.updateMany({ userId, revoked: false }, { revoked: true });
+};
+
 module.exports = mongoose.model('RefreshToken', RefreshTokenSchema);
+

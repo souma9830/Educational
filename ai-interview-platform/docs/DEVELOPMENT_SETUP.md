@@ -17,16 +17,11 @@ git clone https://github.com/Babin123456/Interview-Intelligence-.git
 cd Interview-Intelligence-
 ```
 
-### 2. Install Dependencies
+### 3. Running Unit and Integration Tests
 
 ```bash
-# Root (installs server + triggers client postinstall)
 cd ai-interview-platform
-npm install
-
-# Or manually:
-cd ai-interview-platform/server && npm install
-cd ai-interview-platform/client && npm install
+npm test
 ```
 
 ### 3. Environment Configuration

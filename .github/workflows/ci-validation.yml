@@ -1,0 +1,36 @@
+name: CI Quality Validation
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: ai-interview-platform/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd ai-interview-platform
+          npm ci
+
+      - name: Run ESLint Check
+        run: |
+          cd ai-interview-platform
+          npm run lint --if-present
+
+      - name: Security Audit
+        run: |
+          cd ai-interview-platform
+          npm audit --audit-level=high --if-present

@@ -21,8 +21,15 @@ function validatePasswordStrength(password) {
   return { valid: true, message: 'Password meets requirements' };
 }
 
+function validateOTPPurpose(purpose) {
+  const allowedPurposes = ['password-reset', 'email-verification'];
+  return allowedPurposes.includes(purpose);
+}
+
 module.exports = {
   validateEmail,
   validateOTP,
   validatePasswordStrength,
+  validateOTPPurpose,
 };
+

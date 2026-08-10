@@ -52,9 +52,16 @@ class ProctoringMonitor {
     this.recordViolation('WINDOW_BLUR', 'Focus left the interview window application bounds');
   }
 
+  calculateIntegrityScore() {
+    const penaltyPerViolation = 15;
+    const rawScore = 100 - (this.violations.length * penaltyPerViolation);
+    return Math.max(0, rawScore);
+  }
+
   getViolationSummary() {
     return {
       count: this.violations.length,
+      integrityScore: this.calculateIntegrityScore(),
       exceededThreshold: this.violations.length >= this.maxViolations,
       events: [...this.violations]
     };
@@ -63,4 +70,5 @@ class ProctoringMonitor {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ProctoringMonitor;
+  module.exports.default = ProctoringMonitor;
 }

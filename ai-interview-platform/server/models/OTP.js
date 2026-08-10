@@ -43,11 +43,15 @@ OTPSchema.statics.invalidateAll = function (email, purpose = 'password-reset') {
   return this.deleteMany({ email: email.toLowerCase().trim(), purpose });
 };
 
-// Instance method: increment failed attempt counter
+// Instance method: increment failed attempt counter with security lockout warning
 OTPSchema.methods.incrementAttempts = function () {
   this.attempts += 1;
+  if (this.attempts >= 5) {
+    console.warn(`[Security Alert] Maximum OTP verification attempts exceeded for ${this.email}`);
+  }
   return this.save();
 };
 
 module.exports = mongoose.model('OTP', OTPSchema);
+
 

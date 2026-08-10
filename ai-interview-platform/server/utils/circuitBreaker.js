@@ -1,52 +1,45 @@
-/**
- * CircuitBreaker Pattern Utility
- * Prevents continuous cascading failures to remote AI APIs by opening state on repeated failures.
- */
 class CircuitBreaker {
-  constructor(options = {}) {
-    this.failureThreshold = options.failureThreshold || 3;
-    this.resetTimeout = options.resetTimeout || 30000; // 30 seconds reset window
-    this.state = 'CLOSED'; // CLOSED, OPEN, HALF-OPEN
+  constructor({ failureThreshold = 3, resetTimeout = 20000 } = {}) {
+    this.failureThreshold = failureThreshold;
+    this.resetTimeout = resetTimeout;
     this.failureCount = 0;
+    this.state = 'CLOSED';
     this.nextAttempt = Date.now();
   }
 
-  async execute(requestFn, fallbackFn) {
+  async execute(action, fallbackAction) {
     if (this.state === 'OPEN') {
       if (Date.now() > this.nextAttempt) {
-        this.state = 'HALF-OPEN';
+        this.state = 'HALF_OPEN';
       } else {
-        if (typeof fallbackFn === 'function') {
-          return fallbackFn(new Error('CircuitBreaker is OPEN'));
-        }
-        throw new Error('Circuit breaker is OPEN. Fast failing request.');
+        const err = new Error('Circuit breaker is OPEN');
+        if (typeof fallbackAction === 'function') return fallbackAction(err);
+        throw err;
       }
     }
 
     try {
-      const response = await requestFn();
-      this.onSuccess();
-      return response;
+      const result = await action();
+      this.reset();
+      return result;
     } catch (err) {
-      this.onFailure();
-      if (typeof fallbackFn === 'function') {
-        return fallbackFn(err);
-      }
+      this.recordFailure();
+      if (typeof fallbackAction === 'function') return fallbackAction(err);
       throw err;
     }
   }
 
-  onSuccess() {
-    this.failureCount = 0;
-    this.state = 'CLOSED';
-  }
-
-  onFailure() {
-    this.failureCount += 1;
+  recordFailure() {
+    this.failureCount++;
     if (this.failureCount >= this.failureThreshold) {
       this.state = 'OPEN';
       this.nextAttempt = Date.now() + this.resetTimeout;
     }
+  }
+
+  reset() {
+    this.failureCount = 0;
+    this.state = 'CLOSED';
   }
 }
 

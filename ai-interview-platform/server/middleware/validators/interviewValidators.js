@@ -1,42 +1,40 @@
-const { body } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
+const { sendError } = require('../../utils/apiResponse');
 
-const startInterviewValidator = [
-  body('role').trim().isLength({ min: 2, max: 200 }).withMessage('Role is required (2-200 chars)'),
-  body('experience').trim().isLength({ min: 2, max: 100 }).withMessage('Experience level is required'),
-  body('difficulty').optional().isIn(['Easy', 'Medium', 'Hard']).withMessage('Difficulty must be Easy, Medium, or Hard'),
-  body('jobDescription').optional().trim().isLength({ max: 5000 }),
-  body('resumeText').optional().trim().isLength({ max: 50000 }),
-  body('resumeSkills').optional().isArray(),
-  body('resumeEducation').optional().isArray(),
-  body('resumeProjects').optional().isArray(),
-  body('resumeExperience').optional().isArray(),
-];
+const validate = (validations) => {
+  return async (req, res, next) => {
+    for (let validation of validations) {
+      const result = await validation.run(req);
+      if (result.errors.length) break;
+    }
 
-const submitAnswerValidator = [
-  body('questionIndex').isInt({ min: 0 }).withMessage('Valid questionIndex is required'),
-  body('answer').trim().isLength({ min: 1, max: 10000 }).withMessage('Answer is required (max 10000 chars)'),
-  body('category').optional().isIn(['technical', 'hr', 'coding', 'behavioral']),
-];
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+      return next();
+    }
 
-const evaluateCodeValidator = [
-  body('code').trim().isLength({ min: 1, max: 30000 }).withMessage('Code is required (max 30000 chars)'),
-  body('language').isIn(['javascript', 'python', 'java', 'cpp']).withMessage('Language must be javascript, python, java, or cpp'),
-  body('role').optional().trim().isLength({ max: 200 }),
-];
+    const formattedErrors = errors.array().map(err => ({
+      field: err.path || err.param,
+      message: err.msg
+    }));
 
-const analyzeResumeValidator = [
-  body('jobDescription').optional().trim().isLength({ max: 5000 }),
-];
+    return sendError(res, 'Validation failed for interview payload', 400, formattedErrors);
+  };
+};
 
-const followUpValidator = [
-  body('questionIndex').isInt({ min: 0 }).withMessage('Valid questionIndex is required'),
-  body('answer').trim().isLength({ min: 1, max: 10000 }).withMessage('Answer is required'),
-];
+const createInterviewValidation = validate([
+  body('jobRole').trim().notEmpty().withMessage('Job role is required'),
+  body('experienceYears').optional().isNumeric().withMessage('Experience years must be a number'),
+  body('interviewType').optional().isIn(['technical', 'behavioral', 'coding', 'system-design']).withMessage('Invalid interview type')
+]);
+
+const evaluateAnswerValidation = validate([
+  body('interviewId').trim().notEmpty().withMessage('Interview ID is required'),
+  body('questionId').trim().notEmpty().withMessage('Question ID is required'),
+  body('userAnswer').trim().notEmpty().withMessage('User answer cannot be empty')
+]);
 
 module.exports = {
-  startInterviewValidator,
-  submitAnswerValidator,
-  evaluateCodeValidator,
-  analyzeResumeValidator,
-  followUpValidator,
+  createInterviewValidation,
+  evaluateAnswerValidation
 };

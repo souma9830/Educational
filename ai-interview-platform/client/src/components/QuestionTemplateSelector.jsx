@@ -1,20 +1,34 @@
-import React from 'react';
-import { Sliders, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Sliders, CheckCircle2, BookOpen } from 'lucide-react';
 
 const ROLE_PRESETS = [
   { id: 'Frontend Engineer', name: 'Frontend Engineer', focus: 'React, CSS, Performance, DOM' },
   { id: 'Backend Engineer', name: 'Backend Engineer', focus: 'Distributed Systems, SQL, API Security' },
-  { id: 'Full Stack Engineer', name: 'Full Stack Engineer', focus: 'End-to-End System Design & State' }
+  { id: 'Full Stack Engineer', name: 'Full Stack Engineer', focus: 'End-to-End System Design & State' },
+  { id: 'DevOps Engineer', name: 'DevOps Engineer', focus: 'Docker, Kubernetes, CI/CD, Infrastructure' }
 ];
 
-export default function QuestionTemplateSelector({ selectedRole, onSelectRole }) {
+export default function QuestionTemplateSelector({ selectedRole, onSelectRole, onSelectBank }) {
+  const [customBanks, setCustomBanks] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/questions/banks')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data.banks) {
+          setCustomBanks(data.data.banks);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div style={{ margin: '16px 0', background: '#0d0d0d', border: '1px solid #222', borderRadius: '12px', padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#fff', fontSize: '14px', fontWeight: '600' }}>
         <Sliders size={16} color="#60a5fa" />
         <span>Interview Evaluation Template Presets</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
         {ROLE_PRESETS.map((preset) => {
           const isSelected = selectedRole === preset.id;
           return (
@@ -41,6 +55,35 @@ export default function QuestionTemplateSelector({ selectedRole, onSelectRole })
           );
         })}
       </div>
+
+      {customBanks.length > 0 && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: '#a1a1aa', fontSize: '12px' }}>
+            <BookOpen size={14} />
+            <span>Custom Question Templates</span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {customBanks.map((bank) => (
+              <button
+                key={bank._id}
+                onClick={() => onSelectBank && onSelectBank(bank)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: '#1f2937',
+                  border: '1px solid #374151',
+                  color: '#9ca3af',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                }}
+              >
+                {bank.title} ({bank.category})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

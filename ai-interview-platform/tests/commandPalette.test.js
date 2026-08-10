@@ -1,9 +1,9 @@
-describe('CommandPalette Keyboard Navigation Component', () => {
-  test('validates keyboard shortcut bindings for CommandPalette dialog', () => {
-    const isCmdK = (e) => (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+const { DEFAULT_COMMANDS, filterCommands } = require('../client/src/utils/commandRegistry');
 
-    expect(isCmdK({ ctrlKey: true, key: 'k' })).toBe(true);
-    expect(isCmdK({ metaKey: true, key: 'K' })).toBe(true);
-    expect(isCmdK({ ctrlKey: false, key: 'k' })).toBe(false);
+describe('Command Palette Registry Unit Test Suite', () => {
+  test('filterCommands filters commands correctly by query', () => {
+    const res = filterCommands(DEFAULT_COMMANDS, 'coding');
+    expect(res.length).toBeGreaterThan(0);
+    expect(res[0].tab).toBe('coding');
   });
 });

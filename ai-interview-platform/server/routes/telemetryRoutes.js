@@ -17,4 +17,6 @@ router.get('/telemetry/metrics', protect, adminOnly, (req, res) => {
   }
 });
 
+router.post('/analytics/export', require('../controllers/analyticsController').exportReport);
+
 module.exports = router;
