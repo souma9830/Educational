@@ -1,24 +1,15 @@
-# Related Issue
-Closes #ISSUE_NUMBER
+# Description
 
-# Summary
-Short description of contribution.
+Please include a detailed summary of the changes made and the issue being resolved.
 
-# Changes Made
-- [ ] Added feature/fix in component or utility
-- [ ] Updated tests and verified build cleanly
-- [ ] Addressed responsiveness and accessibility
+## Type of Change
+- [ ] Bug fix (non-breaking change fixing an issue)
+- [ ] New feature (non-breaking change adding functionality)
+- [ ] Refactoring (no functional changes)
+- [ ] Documentation update
 
-# Testing
-- [x] Verified unit test suite passing locally
-- [x] Verified no console errors or runtime warnings
-
-# Impact
-Explains user/maintainer impact of this PR.
-
-# Checklist
-- [x] Code follows project standards
-- [x] Tested locally
-- [x] No unrelated changes included
-- [x] Responsive design verified
-- [x] Accessibility considered
+## Checklist
+- [ ] Code follows project style guidelines
+- [ ] Self-review of changes performed
+- [ ] Tests added/updated
+- [ ] Local build passes successfully

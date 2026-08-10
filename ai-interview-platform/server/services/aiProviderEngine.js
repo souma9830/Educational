@@ -1,20 +1,60 @@
-/**
- * AI Provider Dispatcher and Resilience Engine
- * Manages failover between primary Gemini AI service and local/secondary Ollama providers.
- */
+const { extractCleanJson } = require('../utils/jsonSanitizer');
 const CircuitBreaker = require('../utils/circuitBreaker');
+
+class CircuitBreaker {
+  constructor({ failureThreshold = 3, resetTimeout = 20000 } = {}) {
+    this.failureThreshold = failureThreshold;
+    this.resetTimeout = resetTimeout;
+    this.failureCount = 0;
+    this.state = 'CLOSED';
+    this.nextAttempt = Date.now();
+  }
+
+  async execute(action, fallbackAction) {
+    if (this.state === 'OPEN') {
+      if (Date.now() > this.nextAttempt) {
+        this.state = 'HALF_OPEN';
+      } else {
+        const err = new Error('Circuit breaker is OPEN');
+        if (typeof fallbackAction === 'function') return fallbackAction(err);
+        throw err;
+      }
+    }
+
+    try {
+      const result = await action();
+      this.reset();
+      return result;
+    } catch (err) {
+      this.recordFailure();
+      if (typeof fallbackAction === 'function') return fallbackAction(err);
+      throw err;
+    }
+  }
+
+  recordFailure() {
+    this.failureCount++;
+    if (this.failureCount >= this.failureThreshold) {
+      this.state = 'OPEN';
+      this.nextAttempt = Date.now() + this.resetTimeout;
+    }
+  }
+
+  reset() {
+    this.failureCount = 0;
+    this.state = 'CLOSED';
+  }
+}
 
 class AIProviderEngine {
   constructor() {
     this.primaryBreaker = new CircuitBreaker({ failureThreshold: 3, resetTimeout: 20000 });
   }
 
-  /**
-   * Executes AI evaluation task using primary provider with fallback to backup provider.
-   * @param {Function} primaryCall - Primary Gemini AI provider call.
-   * @param {Function} secondaryCall - Fallback local provider call.
-   * @returns {Promise<Object>} Evaluated evaluation output.
-   */
+  parseAiResponse(rawString) {
+    return extractCleanJson(rawString);
+  }
+
   async evaluateWithFallback(primaryCall, secondaryCall) {
     try {
       return await this.primaryBreaker.execute(primaryCall, async (err) => {

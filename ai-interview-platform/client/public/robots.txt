@@ -1,0 +1,27 @@
+# robots.txt — Interview Intelligence AI Platform
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+
+# Allow public pages
+Allow: /
+Allow: /login
+Allow: /signup
+
+# Disallow authenticated / sensitive application routes
+Disallow: /dashboard
+Disallow: /interview
+Disallow: /coding-test
+Disallow: /result
+Disallow: /schedule
+Disallow: /admin
+Disallow: /api/
+
+# Disallow static build artifacts that should not be indexed
+Disallow: /assets/
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
+
+# Sitemap location
+# Sitemap: https://your-domain.com/sitemap.xml

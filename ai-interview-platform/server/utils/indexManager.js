@@ -6,6 +6,7 @@ const INDEX_DEFINITIONS = {
     { keys: { email: 1 }, options: { unique: true, background: true } },
     { keys: { role: 1, createdAt: -1 }, options: { background: true } },
     { keys: { isActive: 1, lastLogin: -1 }, options: { background: true } },
+    { keys: { firebaseUid: 1 }, options: { sparse: true, background: true } },
   ],
   interviews: [
     { keys: { userId: 1, status: 1, createdAt: -1 }, options: { background: true } },

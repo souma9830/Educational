@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Pagination } from '../components/Common/Pagination';
+import SystemHealthWidget from '../components/Telemetry/SystemHealthWidget';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -19,7 +20,8 @@ export default function AdminAuditLogs() {
 
   return (
     <div style={{ padding: '32px', background: '#0a0a0a', color: '#fff', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>System Audit Logs</h1>
+      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>System Diagnostics & Audit Logs</h1>
+      <SystemHealthWidget />
       <div style={{ background: '#111', borderRadius: '8px', padding: '16px', border: '1px solid #222' }}>
         {paginatedLogs.length === 0 ? (
           <p style={{ color: '#777', fontSize: '13px', textAlign: 'center', padding: '24px' }}>No audit logs available.</p>

@@ -19,7 +19,7 @@ exports.uploadResume = async (req, res) => {
     }
 
     const { originalname, buffer, mimetype } = uploadedFile;
-    console.log(`[Resume Upload] Received: ${originalname} (${mimetype})`);
+    console.log(`[Resume Upload] Received: ${originalname} (${mimetype}, ${buffer?.length || 0} bytes)`);
 
     let rawText = '';
     try {
@@ -150,5 +150,22 @@ exports.analyzeJobDescription = async (req, res) => {
       : 'Job description analyzed with Gemini AI');
   } catch (error) {
     handleControllerError(res, error, 'Failed to analyze job description');
+  }
+};
+
+exports.exportResumeAnalytics = async (req, res) => {
+  try {
+    const { skills = [], matchPercentage = 0, targetRole = 'Software Engineer' } = req.body;
+    const analytics = {
+      exportTimestamp: new Date().toISOString(),
+      targetRole,
+      matchPercentage,
+      totalSkillsFound: skills.length,
+      topSkills: skills.slice(0, 10),
+      readinessGrade: matchPercentage >= 80 ? 'A+' : matchPercentage >= 60 ? 'B' : 'C'
+    };
+    sendSuccess(res, analytics, 200, 'Resume analytics exported successfully');
+  } catch (error) {
+    handleControllerError(res, error, 'Failed to export resume analytics');
   }
 };

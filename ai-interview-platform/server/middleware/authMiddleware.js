@@ -46,6 +46,10 @@ exports.protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
     const token = authHeader.split(' ')[1];
+    const tokenBlacklist = require('../utils/tokenBlacklist');
+    if (tokenBlacklist.has(token)) {
+      return res.status(401).json({ success: false, message: 'Token has been revoked. Please log in again.' });
+    }
     if (process.env.NODE_ENV === 'development' && process.env.ALLOW_DEMO_TOKEN === 'true' && token === 'demo_token_active') {
       logger.warn('Demo token accepted in development mode.');
       req.user = { uid: 'demo_uid', _id: 'demo_uid', role: 'admin' };

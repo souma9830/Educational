@@ -8,6 +8,30 @@ const { containsSuspiciousKeyword } = require('./sandboxRules');
 const { sanitizeSandboxScript } = require('./sandboxSanitizer');
 
 /**
+ * stripComments
+ *
+ * Removes block comments (/* … *\/) and line comments (// …) from a JS
+ * source string before static analysis so that comment-injection evasion
+ * attempts such as require("fs") are eliminated prior to
+ * regex pattern matching.
+ *
+ * Strings are intentionally left intact so that string contents do not
+ * accidentally suppress a genuine forbidden pattern.
+ *
+ * @param {string} code - Raw source string
+ * @returns {string} Source with comment regions collapsed to whitespace
+ */
+function stripComments(code) {
+  // Replace block comments with equivalent whitespace (preserve line numbers)
+  let stripped = code.replace(/\/\*[\s\S]*?\*\//g, (match) =>
+    match.replace(/[^\n]/g, ' ')
+  );
+  // Replace line comments
+  stripped = stripped.replace(/\/\/[^\n]*/g, (match) => ' '.repeat(match.length));
+  return stripped;
+}
+
+/**
  * SandboxValidator
  *
  * Performs static analysis on candidate-submitted code before it reaches
@@ -70,9 +94,15 @@ class SandboxValidator {
       });
     }
 
-    // Scan for forbidden patterns using the regex definitions
+    // Strip comments first so that comment-injection evasion
+    // (e.g. require/*comment*/("fs")) cannot bypass pattern matching.
+    const commentStrippedCode = stripComments(sanitizedCode);
+
+    // Scan for forbidden patterns using the hardened regex definitions.
+    // Both the original sanitized code AND the comment-stripped variant
+    // are tested so that patterns anchored to line starts (^) still work.
     for (const entry of FORBIDDEN_PATTERNS) {
-      if (entry.pattern.test(sanitizedCode)) {
+      if (entry.pattern.test(commentStrippedCode) || entry.pattern.test(sanitizedCode)) {
         violations.push({
           rule: entry.label === 'eval_usage' ? 'eval_call' : entry.label,
           detail: `Code contains a forbidden pattern: ${entry.label.replace(/_/g, ' ')}.`,

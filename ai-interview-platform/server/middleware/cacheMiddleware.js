@@ -1,35 +1,42 @@
-const cacheManager = require('../services/cache/cacheManager');
-const { generateRouteKey } = require('../utils/cacheKeys');
+const memoryCache = new Map();
 
-function routeCacheMiddleware(ttlSeconds = 60) {
+/**
+ * Server-Side Response Caching & Redis Optimization Layer for Audio Transcripts
+ */
+export const cacheResponse = (ttlSeconds = 300) => {
   return (req, res, next) => {
-    // Only cache GET requests
     if (req.method !== 'GET') {
       return next();
     }
 
-    const key = generateRouteKey(req);
-    const cachedData = cacheManager.get(key);
+    const key = req.originalUrl || req.url;
+    const cachedEntry = memoryCache.get(key);
 
-    if (cachedData) {
-      console.log(`[Route Cache] Cache hit for key: ${key}`);
-      return res.status(200).json(JSON.parse(cachedData));
+    if (cachedEntry && Date.now() < cachedEntry.expiry) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.status(200).json(cachedEntry.data);
     }
 
-    // Override res.json to capture response payload
-    const originalJson = res.json;
-    res.json = function (body) {
-      if (res.statusCode === 200 && body && body.success) {
-        console.log(`[Route Cache] Caching response for key: ${key}`);
-        cacheManager.set(key, JSON.stringify(body), ttlSeconds * 1000);
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      res.setHeader('X-Cache', 'MISS');
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        memoryCache.set(key, {
+          data: body,
+          expiry: Date.now() + ttlSeconds * 1000
+        });
       }
-      return originalJson.call(this, body);
+      return originalJson(body);
     };
 
     next();
   };
-}
+};
 
-module.exports = {
-  routeCacheMiddleware,
+export const clearCacheKey = (keyPattern) => {
+  for (const key of memoryCache.keys()) {
+    if (key.includes(keyPattern)) {
+      memoryCache.delete(key);
+    }
+  }
 };

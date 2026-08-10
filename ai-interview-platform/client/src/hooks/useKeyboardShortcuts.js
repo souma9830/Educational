@@ -62,3 +62,5 @@ export function useShortcutsDialog() {
 
   return { isOpen, open, close, toggle };
 }
+
+export default useKeyboardShortcuts;

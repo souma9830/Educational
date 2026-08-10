@@ -26,6 +26,9 @@ const extractTextFromPDF = async (buffer) => {
 
     // Clean up empty lines or double spacing
     textContent = textContent.replace(/\s+/g, ' ').trim();
+    if (textContent.length > 50000) {
+      textContent = textContent.substring(0, 50000);
+    }
 
     if (textContent.length === 0) {
       console.warn('[PDF Parser] Extracted content from PDF successfully, but length was zero (scan/image-only PDF likely)');
