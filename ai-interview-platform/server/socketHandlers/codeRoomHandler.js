@@ -1,13 +1,12 @@
 /**
- * Code Room Socket Handler with OT / Vector Clock Reconnection Sync
- * Handles code delta broadcasts, document versioning, and state vector sync
+ * Collaborative Code Editor Socket Handler with OT State Vector Reconnection Catch-Up
  */
 
 const codeRooms = new Map();
 
 export const handleCodeRoomEvents = (io, socket) => {
   // Join coding assessment room
-  socket.on('code:join_room', ({ roomId, initialCode = '// Write solution here\n' }) => {
+  socket.on('code:join_room', ({ roomId, initialCode = '// Write technical solution here\n' }) => {
     socket.join(roomId);
 
     if (!codeRooms.has(roomId)) {
@@ -32,7 +31,7 @@ export const handleCodeRoomEvents = (io, socket) => {
 
     roomState.version += 1;
     roomState.code = delta.fullCode || roomState.code;
-    roomState.pendingDeltas.push({ version: roomState.version, delta });
+    roomState.pendingDeltas.push({ version: roomState.version, delta, timestamp: Date.now() });
 
     // Keep last 100 deltas for fast catch-up
     if (roomState.pendingDeltas.length > 100) {

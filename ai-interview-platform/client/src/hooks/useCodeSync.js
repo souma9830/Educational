@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
- * useCodeSync Hook
- * Manages document versioning, socket disconnect buffering, and state vector sync
+ * useCodeSync Custom Hook
+ * Manages document vector clock versioning, offline disconnect buffering, and state vector sync upon socket reconnect
  */
-export const useCodeSync = (socket, roomId, initialCode = '// Write code here\n') => {
+export const useCodeSync = (socket, roomId, initialCode = '// Write code solution here\n') => {
   const [code, setCode] = useState(initialCode);
   const [version, setVersion] = useState(0);
   const [isConnected, setIsConnected] = useState(true);
   const offlineBufferRef = useRef([]);
 
-  // Socket event listeners
   useEffect(() => {
     if (!socket) return;
 
