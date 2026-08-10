@@ -1,3 +1,4 @@
+import { Target, Award } from 'lucide-react';
 import { useState } from 'react';
 import { Target, Award, Layers } from 'lucide-react';
 
@@ -37,6 +38,7 @@ const CompetencyRadarChart = ({
   }).join(' ');
 
   const benchmarkPoints = categories.map((_, idx) => {
+    const { x, y } = getCoordinates(idx, 75);
     const { x, y } = getCoordinates(idx, 75); // 75% role benchmark
     return `${x},${y}`;
   }).join(' ');
@@ -63,6 +65,8 @@ const CompetencyRadarChart = ({
       </div>
 
       <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="relative w-64 h-64 flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 240 240" className="w-full h-full overflow-visible">
         {/* SVG Radar Chart */}
         <div className="relative w-64 h-64 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 240 240" className="w-full h-full overflow-visible">
