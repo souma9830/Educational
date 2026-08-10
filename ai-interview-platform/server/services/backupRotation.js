@@ -1,43 +1,58 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 const BACKUPS_DIR = path.join(__dirname, '../backups');
 
-exports.rotateBackups = (maxBackups = 5) => {
+exports.rotateBackups = (maxBackups = 5, maxAgeDays = 30) => {
   if (!fs.existsSync(BACKUPS_DIR)) {
     return { success: true, message: 'Backups directory does not exist' };
   }
 
   try {
+    const now = Date.now();
+    const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
+
     const files = fs.readdirSync(BACKUPS_DIR)
       .filter(file => file.endsWith('.json'))
       .map(file => {
         const filePath = path.join(BACKUPS_DIR, file);
+        const stats = fs.statSync(filePath);
         return {
           name: file,
           path: filePath,
-          time: fs.statSync(filePath).mtime.getTime()
+          time: stats.mtime.getTime(),
+          size: stats.size
         };
       })
-      .sort((a, b) => b.time - a.time); // newest first
+      .sort((a, b) => b.time - a.time);
 
-    if (files.length <= maxBackups) {
-      return { success: true, message: 'No backup rotation required' };
+    const staleFiles = files.filter(f => (now - f.time) > maxAgeMs);
+    const countExceededFiles = files.slice(maxBackups);
+
+    const filesToDeleteMap = new Map();
+    [...staleFiles, ...countExceededFiles].forEach(f => filesToDeleteMap.set(f.path, f));
+    const filesToDelete = Array.from(filesToDeleteMap.values());
+
+    if (filesToDelete.length === 0) {
+      return { success: true, message: 'No backup rotation required', deletedCount: 0, freedBytes: 0 };
     }
 
-    const filesToDelete = files.slice(maxBackups);
+    let freedBytes = 0;
     filesToDelete.forEach(file => {
+      freedBytes += file.size;
       fs.unlinkSync(file.path);
-      console.log(`[Backup Rotation] Deleted old backup file: ${file.name}`);
+      logger.info(`[Backup Rotation] Pruned old backup archive: ${file.name}`, { freedBytes: file.size });
     });
 
     return {
       success: true,
-      message: `Rotated backups. Deleted ${filesToDelete.length} files.`,
-      deletedCount: filesToDelete.length
+      message: `Rotated backups. Deleted ${filesToDelete.length} stale/exceeded files.`,
+      deletedCount: filesToDelete.length,
+      freedBytes
     };
   } catch (error) {
-    console.error('[Backup Rotation] Error during rotation:', error.message);
+    logger.error('[Backup Rotation] Error during retention check:', { error: error.message });
     throw error;
   }
 };

@@ -1,0 +1,24 @@
+name: Security Audit Scan
+
+on:
+  push:
+    branches: [ master, main ]
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Security Audit npm packages
+        working-directory: ./ai-interview-platform
+        run: npm audit --audit-level=high || true

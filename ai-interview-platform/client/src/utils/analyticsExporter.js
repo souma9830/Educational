@@ -1,150 +1,80 @@
 /**
- * Interview Analytics Exporter Utility
- * Formats, calculates session metrics, and generates downloadable JSON, CSV, and PDF report data payloads.
+ * Candidate Interview Analytics Exporter Utility
+ * Export interview reports to CSV, JSON, or Plain Text format.
  */
 
-/**
- * Calculates aggregate performance metrics from interview question responses.
- * @param {Array} questions - List of answered interview questions with scores and evaluation metrics.
- * @returns {Object} Calculated metrics breakdown.
- */
 function calculateSessionMetrics(questions = []) {
   if (!Array.isArray(questions) || questions.length === 0) {
     return {
       totalQuestions: 0,
+      answeredQuestions: 0,
       averageScore: 0,
       highestScore: 0,
       lowestScore: 0,
       categoryScores: {},
-      completionRate: 0
+      completionRate: 0,
     };
   }
 
-  let totalScore = 0;
-  let highestScore = 0;
-  let lowestScore = 100;
+  const answered = questions.filter(q => q.score !== undefined && q.score !== null);
+  const totalScores = answered.reduce((acc, q) => acc + (q.score || 0), 0);
+  const averageScore = answered.length ? Number((totalScores / answered.length).toFixed(1)) : 0;
+  const scores = answered.map(q => q.score || 0);
+  const highestScore = scores.length ? Math.max(...scores) : 0;
+  const lowestScore = scores.length ? Math.min(...scores) : 0;
+
   const categoryScores = {};
   const categoryCounts = {};
-  let answeredCount = 0;
 
-  questions.forEach((q) => {
-    const score = Number(q.score) || 0;
-    const category = q.category || q.type || 'General';
-
-    if (q.userResponse || q.answer) {
-      answeredCount++;
-    }
-
-    totalScore += score;
-    if (score > highestScore) highestScore = score;
-    if (score < lowestScore) lowestScore = score;
-
-    if (!categoryScores[category]) {
-      categoryScores[category] = 0;
-      categoryCounts[category] = 0;
-    }
-    categoryScores[category] += score;
-    categoryCounts[category] += 1;
+  questions.forEach(q => {
+    const cat = q.category || 'General';
+    categoryScores[cat] = (categoryScores[cat] || 0) + (q.score || 0);
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
   });
 
-  const categoryAverages = {};
-  Object.keys(categoryScores).forEach((cat) => {
-    categoryAverages[cat] = Math.round((categoryScores[cat] / categoryCounts[cat]) * 10) / 10;
+  Object.keys(categoryScores).forEach(cat => {
+    categoryScores[cat] = Number((categoryScores[cat] / categoryCounts[cat]).toFixed(1));
   });
 
   return {
     totalQuestions: questions.length,
-    answeredQuestions: answeredCount,
-    averageScore: Math.round((totalScore / questions.length) * 10) / 10,
+    answeredQuestions: answered.length,
+    averageScore,
     highestScore,
-    lowestScore: lowestScore === 100 && questions.length === 0 ? 0 : lowestScore,
-    categoryScores: categoryAverages,
-    completionRate: Math.round((answeredCount / questions.length) * 100)
+    lowestScore,
+    categoryScores,
+    completionRate: Math.round((answered.length / questions.length) * 100),
   };
 }
 
-/**
- * Converts interview evaluation session data into CSV string format.
- * @param {Object} report - Complete interview session report object.
- * @returns {string} CSV formatted content.
- */
-function convertReportToCSV(report) {
-  if (!report) return '';
-
+function convertReportToCSV(reportData = {}) {
   const headers = ['Question Number', 'Category', 'Question Text', 'Score', 'Feedback'];
-  const rows = [];
+  const questions = reportData.questions || [];
+  const rows = questions.map((q, idx) => [
+    idx + 1,
+    `"${(q.category || 'General').replace(/"/g, '""')}"`,
+    `"${(q.text || q.questionText || '').replace(/"/g, '""')}"`,
+    q.score !== undefined ? q.score : 'N/A',
+    `"${(q.userResponse || q.candidateAnswer || '').replace(/"/g, '""')}"`
+  ]);
 
-  const questions = report.questions || report.evaluations || [];
-  questions.forEach((q, idx) => {
-    const questionText = (q.text || q.question || '').replace(/"/g, '""');
-    const feedback = (q.feedback || q.evaluation || '').replace(/"/g, '""');
-    const category = q.category || 'General';
-    const score = q.score || 0;
-
-    rows.push([
-      idx + 1,
-      `"${category}"`,
-      `"${questionText}"`,
-      score,
-      `"${feedback}"`
-    ].join(','));
-  });
-
-  return [headers.join(','), ...rows].join('\n');
+  return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 }
 
-/**
- * Triggers a browser file download from string content or Blob.
- * @param {string} content - Data string content to download.
- * @param {string} filename - Targeted file name.
- * @param {string} mimeType - MIME content type.
- */
-function triggerFileDownload(content, filename, mimeType = 'text/plain') {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+function exportToJSON(data) {
+  return JSON.stringify(data, null, 2);
 }
 
-/**
- * Exports complete candidate interview report in specified format.
- * @param {Object} reportData - Session evaluation dataset.
- * @param {'json'|'csv'} format - Targeted export format.
- */
-function exportReportData(reportData, format = 'json') {
-  const metrics = calculateSessionMetrics(reportData.questions || []);
-  const exportPayload = {
-    exportTimestamp: new Date().toISOString(),
-    candidateName: reportData.candidateName || 'Candidate',
-    jobRole: reportData.role || 'Software Engineer',
-    overallScore: reportData.overallScore || metrics.averageScore,
-    metrics,
-    questions: reportData.questions || []
-  };
-
-  const filePrefix = `interview-report-${(reportData.candidateName || 'candidate').toLowerCase().replace(/\s+/g, '-')}`;
-
-  if (format === 'csv') {
-    const csvContent = convertReportToCSV(reportData);
-    triggerFileDownload(csvContent, `${filePrefix}.csv`, 'text/csv;charset=utf-8;');
-  } else {
-    const jsonContent = JSON.stringify(exportPayload, null, 2);
-    triggerFileDownload(jsonContent, `${filePrefix}.json`, 'application/json');
-  }
+function exportToCSV(data) {
+  return convertReportToCSV(data);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     calculateSessionMetrics,
     convertReportToCSV,
-    triggerFileDownload,
-    exportReportData
+    exportToJSON,
+    exportToCSV,
   };
+  module.exports.default = { calculateSessionMetrics, convertReportToCSV, exportToJSON, exportToCSV };
 }

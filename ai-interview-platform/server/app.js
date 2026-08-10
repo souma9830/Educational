@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const reportRoutes = require('./routes/reportRoutes');
@@ -37,6 +38,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+app.use(compression());
 app.use(securityHeaders);
 app.use(cors(corsConfig));
 app.use(requestLogger);
@@ -56,6 +58,7 @@ app.use('/api/interview', interviewRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/schedules', scheduleRoutes);
+app.use('/api/proctoring', require('./routes/proctoringRoutes'));
 app.use('/api/health', healthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', require('./routes/queryRoutes'));

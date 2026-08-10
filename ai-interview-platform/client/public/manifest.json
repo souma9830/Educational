@@ -5,9 +5,15 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
-  "theme_color": "#ffffff",
+  "theme_color": "#0a0a0a",
   "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
@@ -21,7 +27,64 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Start Mock Interview",
+      "short_name": "New Interview",
+      "description": "Configure and start a new AI-powered technical or behavioral interview",
+      "url": "/?tab=setup",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Analytics",
+      "short_name": "Analytics",
+      "description": "View historical performance reports, score trends, and telemetry logs",
+      "url": "/?tab=dashboard",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Schedule Interview",
+      "short_name": "Schedule",
+      "description": "Schedule upcoming practice interview rounds and set calendar reminders",
+      "url": "/?tab=schedule",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "AI Mock Interview Session & Real-time Telemetry Dashboard"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Proctored Interview Workspace"
+    }
+  ],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "lang": "en-US",
   "scope": "/"
 }

@@ -1,5 +1,6 @@
 const { sendSuccess } = require('../utils/apiResponse');
 const AuditLog = require('../models/AuditLog');
+const { rotateBackups } = require('../services/backupRotation');
 
 exports.getAuditLogs = async (req, res) => {
   try {

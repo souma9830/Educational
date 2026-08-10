@@ -44,7 +44,7 @@ const ResumeSchema = new mongoose.Schema({
   },
 });
 
-ResumeSchema.index({ user: 1 }, { unique: true });
+ResumeSchema.index({ user: 1 });
 ResumeSchema.index({ skills: 1 });
 ResumeSchema.index({ createdAt: -1 });
 

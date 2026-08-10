@@ -21,7 +21,7 @@ const iconButton = {
   background: 'transparent',
   border: 'none',
   cursor: 'pointer',
-  color: '#888',
+  color: 'var(--color-secondary, #888)',
   padding: '6px',
   borderRadius: '50%',
   display: 'flex',
@@ -38,7 +38,8 @@ export default function ThemeToggle({ variant = 'full' }) {
       <button
         onClick={toggleTheme}
         style={iconButton}
-        className="theme-toggle"
+        className="theme-toggle focus:ring-2 focus:ring-indigo-500"
+        aria-pressed={theme === 'dark'}
         aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       >
         {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
@@ -51,6 +52,7 @@ export default function ThemeToggle({ variant = 'full' }) {
       onClick={toggleTheme}
       style={fullButton}
       className="theme-toggle"
+      aria-pressed={theme === 'dark'}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}

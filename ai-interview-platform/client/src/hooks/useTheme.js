@@ -25,6 +25,13 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
 
   useEffect(() => {
@@ -34,9 +41,13 @@ export function useTheme() {
         setThemeState(e.matches ? 'light' : 'dark');
       }
     };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    if (mq.addEventListener) {
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    }
   }, []);
 
   return { theme, setTheme, toggleTheme, isDark: theme === 'dark' };
 }
+
+export default useTheme;

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const logger = require('../services/logger');
 const queryProfiler = require('../services/queryProfiler');
 const { ensureIndexes } = require('./indexManager');
-const { DB_URI, connectionOptions, MAX_RETRIES, RETRY_DELAY_MS, wait } = require('../config/databaseConfig');
+const { DB_URI, connectionOptions, MAX_RETRIES, RETRY_DELAY_MS, wait, backoffDelay } = require('../config/databaseConfig');
 
 let isConnected = false;
 
@@ -22,7 +22,7 @@ const connectDatabase = async (retryCount = 0) => {
     const conn = await mongoose.connect(DB_URI, connectionOptions);
 
     isConnected = true;
-    logger.info(`MongoDB connected: ${conn.connection.host}`);
+    logger.info(`MongoDB connected: ${conn.connection.host} (Port: ${conn.connection.port || 27017})`);
 
     const { runMigrations } = require('../db/migrations/migrationRunner');
     runMigrations().catch(err => {
@@ -58,8 +58,9 @@ const connectDatabase = async (retryCount = 0) => {
     isConnected = false;
 
     if (retryCount < MAX_RETRIES - 1) {
-      logger.info(`Retrying connection in ${RETRY_DELAY_MS / 1000}s... (attempt ${retryCount + 2}/${MAX_RETRIES})`);
-      await wait(RETRY_DELAY_MS);
+      const delay = backoffDelay(retryCount);
+      logger.info(`Retrying connection in ${(delay / 1000).toFixed(1)}s... (attempt ${retryCount + 2}/${MAX_RETRIES})`);
+      await wait(delay);
       return connectDatabase(retryCount + 1);
     }
   }

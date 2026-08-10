@@ -10,6 +10,7 @@ const SUSPICIOUS_KEYWORDS = [
   'exec',
   'cluster.fork',
   'setInterval',
+  'process.mainModule',
   'Function(',
   'eval(',
 ];

@@ -32,9 +32,13 @@ const rateLimiter = (maxRequests = 60, windowMs = 60000) => {
     validTimestamps.push(now);
     stores.set(storeKey, validTimestamps);
 
+    res.setHeader('X-RateLimit-Limit', maxRequests);
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - validTimestamps.length));
+
     if (validTimestamps.length > maxRequests) {
       const isOtpRoute = req.originalUrl && (req.originalUrl.includes('otp') || req.originalUrl.includes('forgot-password'));
       logger.warn('Rate limit exceeded', { ip, path: req.originalUrl });
+      res.setHeader('Retry-After', Math.ceil(windowMs / 1000));
       return res.status(429).json({
         success: false,
         message: isOtpRoute
@@ -42,6 +46,7 @@ const rateLimiter = (maxRequests = 60, windowMs = 60000) => {
           : 'Too many requests. Please try again later.',
       });
     }
+
 
     next();
   };

@@ -1,7 +1,11 @@
 const mongoSanitize = require('express-mongo-sanitize');
 const logger = require('../services/logger');
 
-const BLOCKED_OPERATORS = ['$where', '$regex', '$gt', '$gte', '$lt', '$lte', '$ne', '$in', '$nin', '$or', '$and', '$nor', '$not', '$elemMatch', '$mod', '$all', '$size', '$exists', '$expr', '$jsonSchema', '$text', '$search'];
+const BLOCKED_OPERATORS = [
+  '$where', '$regex', '$options', '$gt', '$gte', '$lt', '$lte', '$ne', '$in',
+  '$nin', '$or', '$and', '$nor', '$not', '$elemMatch', '$mod', '$all', '$size',
+  '$exists', '$expr', '$jsonSchema', '$text', '$search'
+];
 
 const sanitizeMiddleware = mongoSanitize({
   replaceWith: '_$',
@@ -15,11 +19,12 @@ const sanitizeMiddleware = mongoSanitize({
 });
 
 const deepSanitize = (obj) => {
-  if (!obj || typeof obj !== 'object') return obj;
+  if (obj === null || obj === undefined || typeof obj !== 'object') return obj;
   if (Array.isArray(obj)) return obj.map(deepSanitize);
   const sanitized = {};
   for (const [key, value] of Object.entries(obj)) {
-    const cleanKey = BLOCKED_OPERATORS.includes(key) ? `_${key}` : key;
+    const isBlocked = BLOCKED_OPERATORS.includes(key) || key.startsWith('$');
+    const cleanKey = isBlocked ? (key.startsWith('_$') ? key : `_${key}`) : key;
     sanitized[cleanKey] = deepSanitize(value);
   }
   return sanitized;

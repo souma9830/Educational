@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { llmCache } = require('./cache/cacheManager');
 const { parseGeminiJson, clampScore, parseScoreSafe } = require('../utils/geminiParser');
+const { extractCleanJson } = require('../utils/jsonSanitizer');
 
 const getModel = () => {
   const apiKey = process.env.GEMINI_API_KEY;
