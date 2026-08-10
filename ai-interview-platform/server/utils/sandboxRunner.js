@@ -34,7 +34,7 @@ class SandboxRunner {
         return resolve({ error: `Security Violation: ${valResult.violations.map(v => v.detail).join(' ')}` });
       }
 
-      const child = exec('node', { timeout }, (err, stdout, stderr) => {
+      const child = exec('node', { timeout, maxBuffer: 1024 * 512 }, (err, stdout, stderr) => {
         if (err && err.killed) {
           resolve({ error: 'Execution Timeout' });
         } else if (err) {

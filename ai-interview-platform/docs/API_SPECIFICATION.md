@@ -1,5 +1,10 @@
 # Interview Intelligence Platform - API Specification
 
+### 3. Code Execution Output Stream Sandbox
+- **POST** `/api/interview/coding/eval`
+- **Request Body**: `{ "role": "Fullstack Engineer", "code": "console.log(42)", "language": "javascript" }`
+- **Response**: `{ "status": "success", "data": { "overallScore": 95, "compilerOutput": "42\n", "compilerError": null, "testCases": [...] } }` 
+
 ## Base URL
 `/api`
 

@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Loader2, Briefcase, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Loader2, Briefcase, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '../components/Common/ToastProvider';
 
 const card = { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '24px' };
@@ -25,11 +25,8 @@ export default function ScheduleInterview({ setCurrentTab }) {
       const res = await fetch('/api/schedules', { headers: { Authorization: `Bearer ${token}` } });
       const json = await res.json();
       if (json.success) setSchedules(json.data || []);
-    } catch (err) {
-      console.warn('Failed to fetch schedules:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch { console.error('Failed to load schedules'); }
+    finally { setLoading(false); }
   };
 
   const handleCreate = async (e) => {
@@ -60,9 +57,15 @@ export default function ScheduleInterview({ setCurrentTab }) {
     setDeletingId(id);
     try {
       const token = localStorage.getItem('camsense_token');
-      await fetch(`/api/schedules/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      toast.show('Schedule removed', 'success');
-      setSchedules(prev => prev.filter(s => s._id !== id));
+      const res = await fetch(`/api/schedules/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.show('Schedule deleted', 'success');
+        setSchedules(prev => prev.filter(s => s._id !== id));
+      }
     } catch { toast.show('Failed to delete', 'error'); }
     finally { setDeletingId(null); }
   };
@@ -116,11 +119,11 @@ export default function ScheduleInterview({ setCurrentTab }) {
               </div>
               <div>
                 <label style={{ fontSize: '12px', fontWeight: '500', color: '#888', display: 'block', marginBottom: '6px' }}>Notes (optional)</label>
-                <input type="text" placeholder="Preparation notes..." value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} style={inp} />
+                <input type="text" placeholder="e.g. Focus on System Design" value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} style={inp} />
               </div>
             </div>
-            <button type="submit" disabled={saving} style={{ padding: '11px', background: saving ? '#1a1a1a' : '#fff', color: saving ? '#555' : '#000', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              {saving ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Scheduling...</> : <>Schedule Interview <Calendar size={16} /></>}
+            <button type="submit" disabled={saving} style={{ padding: '12px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px' }}>
+              {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Confirm Schedule'}
             </button>
           </form>
         </div>
@@ -128,20 +131,18 @@ export default function ScheduleInterview({ setCurrentTab }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
-            <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-          </div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Loading schedules...</div>
         ) : schedules.length === 0 ? (
-          <div style={{ ...card, textAlign: 'center', padding: '40px' }}>
-            <Calendar size={32} color="#555" style={{ marginBottom: '12px' }} />
-            <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>No interviews scheduled yet. Click "New Schedule" to plan one.</p>
+          <div style={{ ...card, textAlign: 'center', padding: '40px', color: '#666' }}>
+            <Calendar size={32} style={{ marginBottom: '12px', opacity: 0.4 }} />
+            <p style={{ margin: 0, fontSize: '14px' }}>No interviews scheduled yet</p>
           </div>
         ) : (
           schedules.map(schedule => (
-            <div key={schedule._id} style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#1a1a1a', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Briefcase size={18} color="#ccc" />
+            <div key={schedule._id} style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ padding: '10px', background: '#1a1a2e', borderRadius: '8px', color: '#818cf8' }}>
+                  <Briefcase size={20} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>{schedule.role}</div>

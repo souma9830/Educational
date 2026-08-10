@@ -10,6 +10,7 @@ function EditorFallback({ onRetry }) {
       <span style={{ fontSize: '13px', color: '#888' }}>Monaco editor failed to load</span>
       <button
         onClick={onRetry}
+        aria-label="Retry loading code editor"
         style={{ padding: '8px 16px', background: '#fff', color: '#000', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
       >
         <RefreshCw size={13} /> Retry

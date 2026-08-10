@@ -107,6 +107,8 @@ async function fetchWithRetry(url, options = {}, maxRetries = 3, timeoutMs = 200
     }
   }
 }
+
+console.log('FetchWithRetry helper ready.');
 `,
     'AI / ML Engineer': `/**
  * Calculates the Cosine Similarity between vector A and vector B.
@@ -159,6 +161,12 @@ class EventEmitter:
         if event_name in self.events:
             for callback in self.events[event_name]:
                 callback(*args, **kwargs)
+
+if __name__ == '__main__':
+    emitter = EventEmitter()
+    sub = emitter.subscribe('click', lambda msg: print('Clicked:', msg))
+    emitter.emit('click', 'emitter working!')
+    sub.release()
 `,
     'Backend Engineer': `# TokenBucket Rate Limiter implementation
 import time
@@ -182,6 +190,10 @@ class TokenBucket:
             self.tokens -= tokens_required
             return True
         return False
+
+if __name__ == '__main__':
+    bucket = TokenBucket(10, 2)
+    print('Request allowed:', bucket.allow_request(1))
 `,
     'Fullstack Engineer': `# Fetch timeout simulator in Python
 import urllib.request
@@ -196,6 +208,9 @@ def fetch_with_retry(url, max_retries=3, timeout=2.0):
             if attempt == max_retries - 1:
                 raise e
             print(f"Attempt {attempt+1} failed. Retrying...")
+
+if __name__ == '__main__':
+    print("FetchRetry helper initialized.")
 `,
     'AI / ML Engineer': `# Vector cosine similarity semantic ranker
 import math
@@ -209,20 +224,43 @@ def cosine_similarity(vec_a, vec_b):
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return dot_product / (math.sqrt(norm_a) * math.sqrt(norm_b))
+
+if __name__ == '__main__':
+    print('Similarity:', cosine_similarity([1, 2, 3], [1, 2, 3]))
 `
   },
   cpp: {
     ext: 'cpp',
     label: 'C++',
-    'Frontend Engineer': `// Write your custom solution here in C++
+    'Frontend Engineer': `// Custom Event Emitter in C++
 #include <iostream>
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include <string>
 
 class EventEmitter {
-    // Custom Event emitter structure
+public:
+    void subscribe(const std::string& event, std::function<void(const std::string&)> cb) {
+        listeners[event].push_back(cb);
+    }
+    void emit(const std::string& event, const std::string& data) {
+        for (auto& cb : listeners[event]) {
+            cb(data);
+        }
+    }
+private:
+    std::unordered_map<std::string, std::vector<std::function<void(const std::string&)>>> listeners;
 };
+
+int main() {
+    EventEmitter emitter;
+    emitter.subscribe("click", [](const std::string& msg) {
+        std::cout << "Clicked: " << msg << std::endl;
+    });
+    emitter.emit("click", "C++ emitter active!");
+    return 0;
+}
 `,
     'Backend Engineer': `// TokenBucket Rate Limiter in C++
 #include <iostream>
@@ -251,12 +289,29 @@ public:
         return false;
     }
 };
+
+int main() {
+    TokenBucket bucket(10.0, 2.0);
+    std::cout << "Request allowed: " << (bucket.allowRequest(1.0) ? "true" : "false") << std::endl;
+    return 0;
+}
 `,
     'Fullstack Engineer': `// C++ Request Orchestrator Skeletons
 #include <iostream>
 #include <string>
 
-// Implement timeout/retry orchestrator
+class RequestOrchestrator {
+public:
+    static bool executeWithRetry(int maxRetries) {
+        std::cout << "Executing request with retries: " << maxRetries << std::endl;
+        return true;
+    }
+};
+
+int main() {
+    RequestOrchestrator::executeWithRetry(3);
+    return 0;
+}
 `,
     'AI / ML Engineer': `// Cosine Similarity Ranker in C++
 #include <iostream>
@@ -274,6 +329,13 @@ double cosineSimilarity(const std::vector<double>& vecA, const std::vector<doubl
     if (normA == 0.0 || normB == 0.0) return 0.0;
     return dotProduct / (std::sqrt(normA) * std::sqrt(normB));
 }
+
+int main() {
+    std::vector<double> v1 = {1.0, 2.0, 3.0};
+    std::vector<double> v2 = {1.0, 2.0, 3.0};
+    std::cout << "Similarity: " << cosineSimilarity(v1, v2) << std::endl;
+    return 0;
+}
 `
   },
   java: {
@@ -283,7 +345,24 @@ double cosineSimilarity(const std::vector<double>& vecA, const std::vector<doubl
 import java.util.*;
 
 public class EventEmitter {
-    // Skeletons
+    private final Map<String, List<Runnable>> listeners = new HashMap<>();
+
+    public void subscribe(String event, Runnable cb) {
+        listeners.computeIfAbsent(event, k -> new ArrayList<>()).add(cb);
+    }
+
+    public void emit(String event) {
+        List<Runnable> cbs = listeners.get(event);
+        if (cbs != null) {
+            for (Runnable cb : cbs) cb.run();
+        }
+    }
+
+    public static void main(String[] args) {
+        EventEmitter emitter = new EventEmitter();
+        emitter.subscribe("click", () -> System.out.println("Java EventEmitter active!"));
+        emitter.emit("click");
+    }
 }
 `,
     'Backend Engineer': `// TokenBucket Limiter in Java
@@ -315,11 +394,23 @@ public class TokenBucket {
         }
         return false;
     }
+
+    public static void main(String[] args) {
+        TokenBucket bucket = new TokenBucket(10, 2);
+        System.out.println("Request allowed: " + bucket.allowRequest(1));
+    }
 }
 `,
     'Fullstack Engineer': `// Java Retry Handler Skeletons
 public class RetryHandler {
-    // Skeletons
+    public static boolean executeWithRetry(int maxRetries) {
+        System.out.println("Executing Java retry handler with maxRetries=" + maxRetries);
+        return true;
+    }
+
+    public static void main(String[] args) {
+        executeWithRetry(3);
+    }
 }
 `,
     'AI / ML Engineer': `// Cosine Similarity Ranker in Java
@@ -335,7 +426,44 @@ public class SemanticRanker {
         if (normA == 0.0 || normB == 0.0) return 0.0;
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
+
+    public static void main(String[] args) {
+        double[] v1 = {1.0, 2.0, 3.0};
+        double[] v2 = {1.0, 2.0, 3.0};
+        System.out.println("Similarity: " + cosineSimilarity(v1, v2));
+    }
 }
 `
   }
 };
+
+/**
+ * Helper to safely retrieve boilerplate template code for a given language and role.
+ *
+ * @param {string} language - Target programming language key (e.g. 'javascript', 'python')
+ * @param {string} role - Target engineering role (e.g. 'Backend Engineer')
+ * @returns {string} Boilerplate source template code string
+ */
+export function getBoilerplate(language, role) {
+  const langConfig = LANGUAGE_BOILERPLATES[language?.toLowerCase()];
+  if (!langConfig) return '';
+  return langConfig[role] || Object.values(langConfig).find(val => typeof val === 'string') || '';
+}
+
+/**
+ * Returns an array of all supported language keys.
+ *
+ * @returns {string[]}
+ */
+export function getSupportedLanguages() {
+  return Object.keys(LANGUAGE_BOILERPLATES);
+}
+
+export default LANGUAGE_BOILERPLATES;
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = LANGUAGE_BOILERPLATES;
+  module.exports.getBoilerplate = getBoilerplate;
+  module.exports.getSupportedLanguages = getSupportedLanguages;
+  module.exports.LANGUAGE_BOILERPLATES = LANGUAGE_BOILERPLATES;
+}

@@ -25,6 +25,11 @@
 
 * { box-sizing: border-box; }
 
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
 .skip-link {
   transition: none;
 }
@@ -142,4 +147,134 @@ button { font-family: 'Inter', sans-serif; }
   color: #fff !important;
   border-color: #666 !important;
   background: rgba(255,255,255,0.02) !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Offline Indicator States & Badge Utilities                          */
+/* ------------------------------------------------------------------ */
+
+.offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--offline-accent, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  transition: all 0.25s ease;
+}
+
+.offline-badge.online {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.offline-badge.syncing {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.offline-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--offline-accent, #ef4444);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.offline-badge.online .offline-dot {
+  background-color: #10b981;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.offline-badge.syncing .offline-dot {
+  background-color: #f59e0b;
+  animation: pulse-glow 1s infinite ease-in-out;
+}
+
+.offline-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Toast Notification & Modal Animation Classes                       */
+/* ------------------------------------------------------------------ */
+
+.animate-toast-slide {
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Accessible Global Input & Button Focus Enhancements               */
+/* ------------------------------------------------------------------ */
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+[data-theme='light'] input:focus-visible,
+[data-theme='light'] textarea:focus-visible,
+[data-theme='light'] select:focus-visible,
+[data-theme='light'] button:focus-visible {
+  outline: 2px solid #4f46e5 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
 }

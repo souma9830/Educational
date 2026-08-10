@@ -10,11 +10,21 @@ const PromptCacheSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  hitCount: {
+    type: Number,
+    default: 1
+  },
+  lastAccessedAt: {
+    type: Date,
+    default: Date.now
+  },
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 3600 // TTL Index of 1 hour
+    expires: 86400 // TTL Index set to 24 hours
   }
 });
+
+PromptCacheSchema.index({ lastAccessedAt: -1 });
 
 module.exports = mongoose.model('PromptCache', PromptCacheSchema);

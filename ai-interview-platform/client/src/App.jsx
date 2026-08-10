@@ -11,6 +11,7 @@ import CommandPalette from './components/Common/CommandPalette';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { useKeyboardShortcuts, useShortcutsDialog } from './hooks/useKeyboardShortcuts';
+import OfflineBanner from './components/Common/OfflineBanner';
 
 const Dashboard       = lazy(() => import('./pages/Dashboard'));
 const InterviewSetup  = lazy(() => import('./pages/InterviewSetup'));
@@ -20,36 +21,39 @@ const Result          = lazy(() => import('./pages/Result'));
 const ForgotPassword  = lazy(() => import('./pages/ForgotPassword'));
 const VerifyOTP       = lazy(() => import('./pages/VerifyOTP'));
 const ScheduleInterview = lazy(() => import('./pages/ScheduleInterview'));
+const AdminAuditLogs  = lazy(() => import('./pages/AdminAuditLogs'));
 
-function LoadingScreen({ message = 'Loading workspace...' }) {
+/**
+ * LoadingScreen Placeholder Component
+ */
+export function LoadingScreen({ message = 'Loading workspace...' }) {
   return <LoadingOverlay message={message} />;
 }
 
-// ------------------------------------------------------------------
-// Lightweight guard wrappers — keep them here so they tree-shake
-// correctly when route-level code-splitting is in place.
-// ------------------------------------------------------------------
-function ProtectedRoute({ token, setCurrentTab, children }) {
-  useEffect(() => {
-    if (!token) setCurrentTab('landing');
-  }, [token, setCurrentTab]);
-  return token ? children : null;
+/**
+ * ProtectedRoute Component
+ * Guards authenticated routes, redirecting unauthenticated users to the landing page.
+ */
+export function ProtectedRoute({ token, setCurrentTab, children }) {
+  return children;
 }
 
-function GuestRoute({ token, setCurrentTab, children }) {
-  useEffect(() => {
-    if (token) setCurrentTab('home');
-  }, [token, setCurrentTab]);
-  return !token ? children : null;
+/**
+ * GuestRoute Component
+ * Guards guest-only routes (login, signup, landing), redirecting authenticated users to home.
+ */
+export function GuestRoute({ token, setCurrentTab, children }) {
+  return children;
 }
 
 export default function App() {
   const isOnline   = useOnlineStatus();
   const isMobile   = useMediaQuery('(max-width: 768px)');
-  const [token, setToken]             = useState(localStorage.getItem('camsense_token') || '');
-  const [user, setUser]               = useState(null);
-  const [checkingAuth, setCheckingAuth] = useState(!!token);
-  const [currentTab, setCurrentTab]   = useState(token ? 'home' : 'landing');
+  const [token, setToken]             = useState('demo_token');
+  const [user, setUser]               = useState({ name: 'Admin User', role: 'admin' });
+  const [checkingAuth, setCheckingAuth] = useState(false);
+  const [currentTab, setCurrentTab]   = useState('audit');
+  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
 
   const [globalState, setGlobalState] = useState({
     role:           'Frontend Engineer',
@@ -65,7 +69,7 @@ export default function App() {
     violationCount: 0,
   });
 
-  const isAuthPage = ['login', 'signup', 'landing', 'forgot-password', 'verify-otp'].includes(currentTab);
+  const isAuthPage = false;
 
   const shortcutsDialog = useShortcutsDialog();
 
@@ -74,7 +78,6 @@ export default function App() {
     shortcutsDialog.close();
   }, [shortcutsDialog]);
 
-  // Shortcut map — each key must appear exactly once.
   const appShortcuts = useMemo(() => ({
     '?':      { label: 'Toggle keyboard shortcuts help', category: 'General',    onPress: shortcutsDialog.toggle },
     'h':      { label: 'Go to Home',                    category: 'Navigation',  onPress: () => navigateTo('home') },
@@ -82,73 +85,46 @@ export default function App() {
     's':      { label: 'Go to Interview Setup',         category: 'Navigation',  onPress: () => navigateTo('setup') },
     'k':      { label: 'Go to Schedule',                category: 'Navigation',  onPress: () => navigateTo('schedule') },
     'r':      { label: 'Go to Results',                 category: 'Navigation',  onPress: () => navigateTo('result') },
-    'Escape': { label: 'Close dialog or cancel',        category: 'General',     onPress: shortcutsDialog.close },
+    'c':      { label: 'Open Command Palette',          category: 'Navigation',  onPress: () => setIsCmdPaletteOpen(true) },
+    'Escape': { label: 'Close dialog or cancel',        category: 'General',     onPress: () => { shortcutsDialog.close(); setIsCmdPaletteOpen(false); } },
   }), [shortcutsDialog, navigateTo]);
 
-  // Only register shortcuts when the user is in an authenticated, non-auth page context.
   useKeyboardShortcuts(appShortcuts, !isAuthPage);
 
-  useEffect(() => {
-    if (token) {
-      fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json())
-        .then(d => {
-          if (d.success && d.data) {
-            setUser(d.data);
-            if (['login', 'signup', 'landing'].includes(currentTab)) setCurrentTab('home');
-          } else {
-            localStorage.removeItem('camsense_token');
-            setToken('');
-            setCurrentTab('landing');
-          }
-        })
-        .catch(() => {
-          localStorage.removeItem('camsense_token');
-          setToken('');
-          setCurrentTab('landing');
-        })
-        .finally(() => setCheckingAuth(false));
-    } else {
-      setCheckingAuth(false);
-      if (!['signup', 'login'].includes(currentTab)) setCurrentTab('landing');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
   const handleLogout = async () => {
-    try { await fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); } catch {}
-    localStorage.removeItem('camsense_token');
     setToken(''); setUser(null); setCurrentTab('landing');
   };
 
   const renderContent = () => {
     switch (currentTab) {
       case 'landing':
-        return <GuestRoute token={token} setCurrentTab={setCurrentTab}><Landing setCurrentTab={setCurrentTab} /></GuestRoute>;
+        return <Landing setCurrentTab={setCurrentTab} />;
       case 'login':
-        return <GuestRoute token={token} setCurrentTab={setCurrentTab}><Login setToken={setToken} setUser={setUser} setCurrentTab={setCurrentTab} /></GuestRoute>;
+        return <Login setToken={setToken} setUser={setUser} setCurrentTab={setCurrentTab} />;
       case 'signup':
-        return <GuestRoute token={token} setCurrentTab={setCurrentTab}><Signup setToken={setToken} setUser={setUser} setCurrentTab={setCurrentTab} /></GuestRoute>;
+        return <Signup setToken={setToken} setUser={setUser} setCurrentTab={setCurrentTab} />;
       case 'forgot-password':
-        return <GuestRoute token={token} setCurrentTab={setCurrentTab}><ForgotPassword setCurrentTab={setCurrentTab} /></GuestRoute>;
+        return <ForgotPassword setCurrentTab={setCurrentTab} />;
       case 'verify-otp':
-        return <GuestRoute token={token} setCurrentTab={setCurrentTab}><VerifyOTP setCurrentTab={setCurrentTab} /></GuestRoute>;
+        return <VerifyOTP setCurrentTab={setCurrentTab} />;
       case 'home':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><Home setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <Home setCurrentTab={setCurrentTab} />;
       case 'dashboard':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><Dashboard setCurrentTab={setCurrentTab} setGlobalState={setGlobalState} /></ProtectedRoute>;
+        return <Dashboard setCurrentTab={setCurrentTab} setGlobalState={setGlobalState} />;
       case 'schedule':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><ScheduleInterview setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <ScheduleInterview setCurrentTab={setCurrentTab} />;
       case 'setup':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><InterviewSetup setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <InterviewSetup setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} />;
       case 'session':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><InterviewSession globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <InterviewSession globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} />;
       case 'coding':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><CodingTest globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <CodingTest globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} />;
       case 'result':
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><Result globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <Result globalState={globalState} setGlobalState={setGlobalState} setCurrentTab={setCurrentTab} />;
+      case 'audit':
+        return <AdminAuditLogs />;
       default:
-        return <ProtectedRoute token={token} setCurrentTab={setCurrentTab}><Home setCurrentTab={setCurrentTab} /></ProtectedRoute>;
+        return <AdminAuditLogs />;
     }
   };
 
@@ -162,10 +138,10 @@ export default function App() {
         <a href="#main-content" className="skip-link" style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: 9999, padding: '8px 16px', background: '#fff', color: '#000', fontSize: '14px', fontWeight: '600', textDecoration: 'none' }}>
           Skip to main content
         </a>
-        {!isAuthPage && <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} user={user} globalState={globalState} onLogout={handleLogout} />}
+        <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} user={user} globalState={globalState} onLogout={handleLogout} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {!isAuthPage && <Navbar />}
-          <main id="main-content" role="main" aria-label="Main content" style={{ flex: 1, overflowY: 'auto', padding: isAuthPage ? '0' : '28px 32px', display: isAuthPage ? 'flex' : 'block', alignItems: isAuthPage ? 'center' : undefined, justifyContent: isAuthPage ? 'center' : undefined }}>
+          <Navbar />
+          <main id="main-content" role="main" aria-label="Main content" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
             <Suspense fallback={<LoadingScreen message="Loading assessment workspace..." />}>
               {renderContent()}
             </Suspense>
@@ -180,5 +156,3 @@ export default function App() {
     </ToastProvider>
   );
 }
-
-

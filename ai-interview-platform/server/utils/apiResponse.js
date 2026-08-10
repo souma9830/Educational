@@ -97,11 +97,25 @@ function paginatedResponse(res, data, total, page, limit, message = 'OK') {
   return res.status(200).json(body);
 }
 
+function sendCustom(res, statusCode, success, message, data = null, errors = null) {
+  const body = {
+    success,
+    message,
+    data,
+    timestamp: new Date().toISOString(),
+  };
+  if (errors) body.errors = errors;
+  const requestId = getRequestId(res);
+  if (requestId) body.requestId = requestId;
+  return res.status(statusCode).json(body);
+}
+
 module.exports = {
   AppError,
   sendSuccess,
   sendCreated,
   sendError,
+  sendCustom,
   handleControllerError,
   paginatedResponse,
 };

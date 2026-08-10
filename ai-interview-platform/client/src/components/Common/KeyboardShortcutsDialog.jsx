@@ -57,6 +57,7 @@ export function KeyboardShortcutsDialog({ isOpen, onClose, shortcuts = {} }) {
           <button
             onClick={onClose}
             aria-label="Close shortcuts dialog"
+            className="focus:outline-none focus:ring-2 focus:ring-slate-400 rounded"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: '4px', display: 'flex' }}
           >
             <X size={16} />

@@ -1,74 +1,53 @@
 import React from 'react';
 
-export default function ToastContainer({ toasts, dismiss }) {
-  if (toasts.length === 0) return null;
+export default function Toast({ toast, dismiss }) {
+  if (!toast) return null;
+
+  const typeStyles = {
+    success: {
+      bg: 'bg-emerald-950/90 border-emerald-500/40 text-emerald-100',
+      iconBg: 'bg-emerald-500/20 text-emerald-400',
+      icon: '✓',
+    },
+    error: {
+      bg: 'bg-rose-950/90 border-rose-500/40 text-rose-100',
+      iconBg: 'bg-rose-500/20 text-rose-400',
+      icon: '✕',
+    },
+    warning: {
+      bg: 'bg-amber-950/90 border-amber-500/40 text-amber-100',
+      iconBg: 'bg-amber-500/20 text-amber-400',
+      icon: '!',
+    },
+    info: {
+      bg: 'bg-indigo-950/90 border-indigo-500/40 text-indigo-100',
+      iconBg: 'bg-indigo-500/20 text-indigo-400',
+      icon: 'i',
+    },
+  };
+
+  const style = typeStyles[toast.type] || typeStyles.info;
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        maxWidth: '380px',
-        width: '100%',
-      }}
-      role="live"
-      aria-label="Notifications"
+      role="alert"
+      className={`flex items-start justify-between p-4 rounded-xl border backdrop-blur-md shadow-2xl ${style.bg}`}
     >
-      {toasts.map((toast) => {
-        let bgColor = '#1e1b4b'; // dark blue / indigo default
-        let borderLeft = '4px solid #6366f1';
-        if (toast.type === 'success') {
-          bgColor = '#064e3b';
-          borderLeft = '4px solid #10b981';
-        } else if (toast.type === 'error') {
-          bgColor = '#7f1d1d';
-          borderLeft = '4px solid #ef4444';
-        } else if (toast.type === 'warning') {
-          bgColor = '#78350f';
-          borderLeft = '4px solid #f59e0b';
-        }
-
-        return (
-          <div
-            key={toast.id}
-            style={{
-              background: bgColor,
-              color: '#f8fafc',
-              padding: '12px 16px',
-              borderRadius: '6px',
-              borderLeft: borderLeft,
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '14px',
-              animation: 'slideIn 0.2s ease-out',
-            }}
-          >
-            <span>{toast.message}</span>
-            <button
-              onClick={() => dismiss(toast.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#94a3b8',
-                cursor: 'pointer',
-                marginLeft: '12px',
-                fontSize: '16px',
-                padding: '2px 6px',
-              }}
-              aria-label="Dismiss notification"
-            >
-              &times;
-            </button>
-          </div>
-        );
-      })}
+      <div className="flex items-center space-x-3">
+        <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${style.iconBg}`}>
+          {style.icon}
+        </span>
+        <p className="text-sm font-medium leading-snug">{toast.message}</p>
+      </div>
+      {dismiss && (
+        <button
+          onClick={dismiss}
+          className="ml-4 text-slate-400 hover:text-slate-200 transition-colors rounded p-1 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          aria-label="Dismiss toast"
+        >
+          &times;
+        </button>
+      )}
     </div>
   );
 }

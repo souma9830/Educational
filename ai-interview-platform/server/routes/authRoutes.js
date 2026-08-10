@@ -21,6 +21,7 @@ const addDeprecationHeaders = (req, res, next) => {
   next();
 };
 
+// Express authentication routes protected by express-validator schemas and rate limits
 router.use(addDeprecationHeaders);
 
 // Stateless authentication endpoints mapping user JWT claims.

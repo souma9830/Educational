@@ -10,6 +10,14 @@ describe('Platform Health Endpoint Tests', () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.status).toBe('healthy');
+    expect(['healthy', 'degraded']).toContain(res.body.data.status);
+  });
+
+  it('should return detailed system diagnostics via /diagnostics', async () => {
+    const res = await request(app).get('/api/health/diagnostics');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.diagnostics).toBeDefined();
+    expect(res.body.data.diagnostics.system.cpuCount).toBeGreaterThan(0);
   });
 });

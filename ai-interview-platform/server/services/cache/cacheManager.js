@@ -8,5 +8,6 @@ class CacheManager {
   set(key, val, ttl) { return this.provider.set(key, val, ttl); }
   del(key) { return this.provider.del(key); }
   clear() { return this.provider.clear(); }
+  getStats() { return this.provider.getStats ? this.provider.getStats() : { size: 0 }; }
 }
 module.exports = new CacheManager();
