@@ -110,7 +110,56 @@ async function networkFirstWithOfflineFallback(request) {
 }
 
 async function networkFirstWithQueue(request) {
+  // Clone the request BEFORE fetch() consumes the body stream.
+  // We only need the body for mutation methods that carry a payload.
+  const method = request.method.toUpperCase();
+  const hasMutationBody = method !== 'GET' && method !== 'HEAD';
+
+  // Eagerly read and serialise the body so we can include it in the offline
+  // queue message even after fetch() drains the original stream.
+  let serializedBody = null;
+  let contentType = null;
+
+  if (hasMutationBody) {
+    try {
+      const bodyClone = request.clone();
+      contentType = bodyClone.headers.get('Content-Type') || '';
+
+      if (contentType.includes('application/json') || contentType.includes('text/')) {
+        // Text-based payloads (JSON, plain text, form-urlencoded as text)
+        serializedBody = await bodyClone.text();
+      } else if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+        // Serialise FormData entries as a plain object so the client can
+        // reconstruct the FormData on replay if needed.
+        const formData = await bodyClone.formData();
+        const formObj = {};
+        for (const [key, value] of formData.entries()) {
+          // Skip File entries — binary blobs cannot survive postMessage serialisation
+          if (typeof value === 'string') {
+            formObj[key] = value;
+          }
+        }
+        serializedBody = JSON.stringify(formObj);
+        contentType = 'application/json'; // normalise for client replay
+      } else {
+        // Binary payloads (e.g. ArrayBuffer) — convert to base64 for safe
+        // postMessage transport across the SW ↔ window boundary.
+        const arrayBuffer = await bodyClone.arrayBuffer();
+        if (arrayBuffer.byteLength > 0) {
+          const uint8 = new Uint8Array(arrayBuffer);
+          serializedBody = btoa(String.fromCharCode(...uint8));
+          contentType = `${contentType};base64`;
+        }
+      }
+    } catch {
+      // If body serialisation fails, continue without it — the queued message
+      // will still carry the URL, method, and headers for idempotent replays.
+      serializedBody = null;
+    }
+  }
+
   try {
+    // Use the original request for the actual network call (body stream intact).
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(CACHE_API);
@@ -120,6 +169,9 @@ async function networkFirstWithQueue(request) {
   } catch {
     const cached = await caches.match(request);
     if (cached) return cached;
+
+    // Notify all active window clients so they can persist and later replay
+    // the queued request — now including the full serialised body.
     try {
       const clients = await self.clients.matchAll({ type: 'window' });
       for (const client of clients) {
@@ -128,9 +180,13 @@ async function networkFirstWithQueue(request) {
           url: request.url,
           method: request.method,
           headers: Array.from(request.headers.entries()),
+          body: serializedBody,
+          contentType,
+          timestamp: Date.now(),
         });
       }
     } catch {}
+
     return new Response(JSON.stringify({
       success: false,
       message: 'You are offline. Request queued for retry.',

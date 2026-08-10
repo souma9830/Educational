@@ -78,8 +78,14 @@ ai-interview-platform/
 - No JDoodle credentials → `jdoodleCompiler.js` fallback simulates
   execution using LLM heuristics.
 
+## Security & Operational Enhancements
+- **Rate Limiting**: Sliding window rate limiting on authentication routes with `Retry-After` headers.
+- **Token Invalidation**: Active refresh token revocation upon user logout (`RefreshToken.revokeAllUserTokens`).
+- **Prompt Cache Analytics**: In-memory cache manager tracking hit/miss statistics for LLM prompt optimizations.
+- **Database Diagnostic Health**: Ping latency and storage connectivity metrics exposed in `/health` endpoints.
+
 ## Notes
 - `server/routes/v2` suggests an API versioning pattern in progress —
   worth flagging for maintainers as it wasn't explored in this pass.
 - Database layer uses both `models/` (Mongoose) and `repositories/`,
-  suggesting a repository-pattern abstraction over MongoDB.
+  suggesting a repository-pattern abstraction over MongoDB.

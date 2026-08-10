@@ -34,6 +34,7 @@ const TimelineMarkerPlayer = () => {
         </span>
       </div>
 
+      {/* Video Simulated Frame */}
       <div className="relative bg-slate-950 rounded-2xl border border-slate-800 h-64 flex items-center justify-center overflow-hidden">
         <div className="text-center space-y-2">
           <button
@@ -45,6 +46,7 @@ const TimelineMarkerPlayer = () => {
           <p className="text-xs text-slate-400 font-bold">Synchronized HD Video Recording Replay</p>
         </div>
 
+        {/* Dynamic Timeline Scrub Bar */}
         <div className="absolute bottom-4 left-4 right-4 space-y-2">
           <div className="relative w-full bg-slate-800 h-2 rounded-full cursor-pointer" onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
@@ -53,6 +55,7 @@ const TimelineMarkerPlayer = () => {
           }}>
             <div style={{ width: `${(currentTime / duration) * 100}%` }} className="h-full bg-blue-500 rounded-full" />
 
+            {/* Marker Pins */}
             {markers.map((m, idx) => (
               <div
                 key={idx}
@@ -66,6 +69,7 @@ const TimelineMarkerPlayer = () => {
         </div>
       </div>
 
+      {/* Marker Buttons List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {markers.map((m, idx) => (
           <button

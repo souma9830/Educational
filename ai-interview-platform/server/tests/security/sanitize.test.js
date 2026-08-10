@@ -86,4 +86,24 @@ describe('Sanitize Middleware', () => {
       expect(pipeline[0].$match.status).toBe('active');
     });
   });
+
+  describe('TokenBlacklist', () => {
+    const tokenBlacklist = require('../../utils/tokenBlacklist');
+
+    beforeEach(() => {
+      tokenBlacklist.clear();
+    });
+
+    it('should add token to revocation list and recognize it', () => {
+      tokenBlacklist.add('sample_token_xyz');
+      expect(tokenBlacklist.has('sample_token_xyz')).toBe(true);
+      expect(tokenBlacklist.has('other_token')).toBe(false);
+    });
+
+    it('should handle clearing all blacklisted tokens', () => {
+      tokenBlacklist.add('test_token');
+      tokenBlacklist.clear();
+      expect(tokenBlacklist.has('test_token')).toBe(false);
+    });
+  });
 });

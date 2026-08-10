@@ -1,0 +1,68 @@
+name: interview-intelligence
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:6.0-alpine
+    container_name: interview_intelligence_db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: interview_intelligence
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Express Backend API Service
+  backend:
+    build:
+      context: ./ai-interview-platform
+      dockerfile: Dockerfile
+      target: backend
+    container_name: interview_intelligence_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/interview_intelligence
+      - MONGO_URI=mongodb://mongodb:27017/interview_intelligence
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+      - STORAGE_PROVIDER=mongodb
+      - ALLOW_DEMO_TOKEN=true
+    volumes:
+      - ./ai-interview-platform:/app
+      - /app/node_modules
+      - /app/client/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # React Vite Frontend Service
+  frontend:
+    build:
+      context: ./ai-interview-platform
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: interview_intelligence_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_PORT=3000
+    volumes:
+      - ./ai-interview-platform/client:/app/client
+      - /app/client/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
+    driver: local

@@ -1,47 +1,61 @@
 import React, { createContext, useCallback, useState, useContext } from 'react';
-import ToastContainer from './Toast';
+import ToastNotificationContainer from './ToastNotificationContainer';
 
-const ToastContext = createContext(null);
+export const ToastContext = createContext(null);
 
 let toastIdCounter = 0;
 
-/**
- * Unified Toast Provider
- * Supports both API patterns:
- *   - { addToast, removeToast } (legacy)
- *   - { show, dismiss } (new)
- * Both point to the same underlying implementation.
- */
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   const addToast = useCallback((message, type = 'info', duration = 4000) => {
     const id = ++toastIdCounter;
-    setToasts(prev => [...prev, { id, message, type }]);
-    if (duration) {
+    const toastItem = { id, message, type, duration };
+    setToasts((prev) => [...prev, toastItem]);
+
+    if (duration > 0) {
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id));
+        removeToast(id);
       }, duration);
     }
-  }, []);
+    return id;
+  }, [removeToast]);
 
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  const dismiss = removeToast;
   const show = addToast;
+  const dismiss = removeToast;
+
+  const success = useCallback((msg, duration) => addToast(msg, 'success', duration), [addToast]);
+  const error = useCallback((msg, duration) => addToast(msg, 'error', duration), [addToast]);
+  const warning = useCallback((msg, duration) => addToast(msg, 'warning', duration), [addToast]);
+  const info = useCallback((msg, duration) => addToast(msg, 'info', duration), [addToast]);
+
+  const value = {
+    addToast,
+    removeToast,
+    show,
+    dismiss,
+    success,
+    error,
+    warning,
+    info,
+  };
 
   return (
-    <ToastContext.Provider value={{ addToast, removeToast, show, dismiss }}>
+    <ToastContext.Provider value={value}>
       {children}
-      <ToastContainer toasts={toasts} dismiss={dismiss} />
+      <ToastNotificationContainer toasts={toasts} dismiss={dismiss} />
     </ToastContext.Provider>
   );
 }
 
-export function useToast() {
+export function useToastContext() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+  if (!ctx) throw new Error('useToastContext must be used within a ToastProvider');
   return ctx;
 }
+
+export const useToast = useToastContext;

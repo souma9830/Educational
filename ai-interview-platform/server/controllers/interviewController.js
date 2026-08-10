@@ -215,6 +215,8 @@ exports.evaluateCode = async (req, res) => {
       overallScore: evaluation.overallScore,
       metrics: evaluation.metrics,
       testCases: evaluation.testCases,
+      compilerOutput: compilerOutput || 'Execution completed with output stream.',
+      compilerError: compilerError || null,
       recommendation: evaluation.overallScore > 80
         ? 'Exceptional architecture. Your code utilizes optimal standard vectors.'
         : 'Enrich code declarations to conform to standard compiler boundaries.',

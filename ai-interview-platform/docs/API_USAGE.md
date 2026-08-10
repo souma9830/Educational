@@ -4,6 +4,12 @@
 
 This document provides comprehensive usage examples for every API endpoint in the Interview Intelligence platform. All endpoints return a standardized JSON envelope.
 
+### Proctoring Integrity Endpoint
+```
+GET /api/proctoring/integrity/:sessionId
+```
+- **Response**: `{ "success": true, "data": { "sessionId": "sess-1", "integrityScore": 100, "status": "CLEAN" } }`
+
 ## Response Envelope
 
 Every API response follows this shape:

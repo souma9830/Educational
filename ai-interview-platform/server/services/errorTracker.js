@@ -64,22 +64,32 @@ class ErrorTracker {
 
   static async getStats(timeframeHours = 24) {
     const since = new Date(Date.now() - timeframeHours * 60 * 60 * 1000);
-    const stats = await ErrorLog.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      { $group: {
-        _id: '$level',
-        count: { $sum: 1 },
-        paths: { $addToSet: '$path' },
-      }},
+    const [stats, codeStats] = await Promise.all([
+      ErrorLog.aggregate([
+        { $match: { createdAt: { $gte: since } } },
+        { $group: {
+          _id: '$level',
+          count: { $sum: 1 },
+          paths: { $addToSet: '$path' },
+        }},
+      ]),
+      ErrorLog.aggregate([
+        { $match: { createdAt: { $gte: since } } },
+        { $group: {
+          _id: '$code',
+          count: { $sum: 1 }
+        }}
+      ])
     ]);
     const total = stats.reduce((acc, s) => acc + s.count, 0);
     return {
       total,
       since,
       byLevel: stats,
+      byCode: codeStats,
       unresolved: await ErrorLog.countDocuments({ resolved: false }),
     };
   }
 }
 
-module.exports = ErrorTracker;
+module.exports = ErrorTracker;

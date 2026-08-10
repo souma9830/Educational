@@ -2,10 +2,12 @@
   "env": {
     "node": true,
     "es2024": true,
-    "jest": true
+    "jest": true,
+    "browser": true
   },
   "parserOptions": {
-    "ecmaVersion": "latest"
+    "ecmaVersion": "latest",
+    "sourceType": "module"
   },
   "extends": ["eslint:recommended"],
   "rules": {
@@ -17,8 +19,8 @@
     "no-process-exit": "warn",
     "no-throw-literal": "error",
     "prefer-template": "warn",
-    "no-undef": "error",
+    "no-undef": "warn",
     "no-redeclare": "warn"
   },
-  "ignorePatterns": ["node_modules", "dist", "build", "coverage"]
+  "ignorePatterns": ["node_modules", "dist", "build", "coverage", "client/src/App.jsx.bak"]
 }

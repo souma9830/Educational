@@ -4,6 +4,7 @@ const logger = require('../services/logger');
 const securityHeaders = (req, res, next) => {
   const nonce = generateNonce();
   res.locals.cspNonce = nonce;
+  res.locals.nonce = nonce;
 
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');

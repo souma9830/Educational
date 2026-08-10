@@ -1,4 +1,6 @@
 import { Target, Award } from 'lucide-react';
+import { useState } from 'react';
+import { Target, Award, Layers } from 'lucide-react';
 
 const CompetencyRadarChart = ({
   scores = {
@@ -17,6 +19,7 @@ const CompetencyRadarChart = ({
     { key: 'codeQuality', label: 'Code Quality & Cleanliness', score: scores.codeQuality }
   ];
 
+  // SVG Radar Polygon math calculations
   const center = 120;
   const radius = 90;
   const numAxes = categories.length;
@@ -36,6 +39,7 @@ const CompetencyRadarChart = ({
 
   const benchmarkPoints = categories.map((_, idx) => {
     const { x, y } = getCoordinates(idx, 75);
+    const { x, y } = getCoordinates(idx, 75); // 75% role benchmark
     return `${x},${y}`;
   }).join(' ');
 
@@ -63,6 +67,10 @@ const CompetencyRadarChart = ({
       <div className="flex flex-col md:flex-row items-center gap-6">
         <div className="relative w-64 h-64 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 240 240" className="w-full h-full overflow-visible">
+        {/* SVG Radar Chart */}
+        <div className="relative w-64 h-64 flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 240 240" className="w-full h-full overflow-visible">
+            {/* Concentric Grid Rings */}
             {[0.25, 0.5, 0.75, 1.0].map((level, rIdx) => {
               const gridPoints = categories.map((_, idx) => {
                 const { x, y } = getCoordinates(idx, level * 100);
@@ -80,6 +88,7 @@ const CompetencyRadarChart = ({
               );
             })}
 
+            {/* Benchmark Polygon */}
             <polygon
               points={benchmarkPoints}
               fill="rgba(100, 116, 139, 0.15)"
@@ -88,6 +97,7 @@ const CompetencyRadarChart = ({
               strokeDasharray="4 4"
             />
 
+            {/* Candidate Polygon */}
             <polygon
               points={points}
               fill="rgba(59, 130, 246, 0.3)"
@@ -95,6 +105,7 @@ const CompetencyRadarChart = ({
               strokeWidth="2.5"
             />
 
+            {/* Data Dots */}
             {categories.map((cat, idx) => {
               const { x, y } = getCoordinates(idx, cat.score);
               return (
@@ -110,6 +121,7 @@ const CompetencyRadarChart = ({
           </svg>
         </div>
 
+        {/* Score Breakdown List */}
         <div className="w-full space-y-3">
           {categories.map((cat) => (
             <div key={cat.key} className="space-y-1">

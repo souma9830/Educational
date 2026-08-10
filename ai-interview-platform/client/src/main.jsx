@@ -24,10 +24,23 @@ if ('serviceWorker' in navigator) {
     }).then(() => {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data && event.data.type === 'QUEUE_OFFLINE_REQUEST') {
-          queueOfflineRequest({
-            url: event.data.url,
-            method: event.data.method,
-            headers: Object.fromEntries(event.data.headers || []),
+          const { url, method, headers, body, contentType } = event.data;
+
+          let parsedBody = body;
+          if (typeof body === 'string' && contentType && contentType.includes('application/json')) {
+            try {
+              parsedBody = JSON.parse(body);
+            } catch (_err) {
+              parsedBody = body;
+            }
+          }
+
+          const headersObj = Array.isArray(headers) ? Object.fromEntries(headers) : (headers || {});
+
+          queueOfflineRequest(url, parsedBody, {
+            method: method || 'POST',
+            headers: headersObj,
+            contentType,
           });
         }
       });

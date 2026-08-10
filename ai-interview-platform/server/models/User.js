@@ -50,4 +50,7 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+UserSchema.index({ email: 1, createdAt: -1 });
+UserSchema.index({ firebaseUid: 1 }, { sparse: true });
+
 module.exports = mongoose.model('User', UserSchema);
