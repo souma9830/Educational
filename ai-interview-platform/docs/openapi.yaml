@@ -1,0 +1,44 @@
+openapi: 3.0.3
+info:
+  title: AI Interview Platform API Specification
+  description: RESTful API contracts for AI candidate interviewing, resume scoring, and proctoring analytics.
+  version: 1.0.0
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: User login endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Successful authentication
+        '401':
+          description: Invalid credentials
+  /api/v1/interview/start:
+    post:
+      summary: Initialize automated AI interview session
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Session created successfully
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
